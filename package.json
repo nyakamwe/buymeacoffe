@@ -1,10 +1,13 @@
 {
+  "homepage": "http://nyakamwe.github.io/buymeacoffee",
   "name": "buymeacoffee",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "build": "vue-cli-service build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build"
   },
   "dependencies": {
     "core-js": "^3.8.3",
