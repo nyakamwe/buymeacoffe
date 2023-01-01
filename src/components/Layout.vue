@@ -15,13 +15,11 @@
             </div>
         </div>
         <form class="donate-form">
-            <div v-if="amount>0">
-                <input type="text" name="" id="" :value="amount">
+            <div>
+                <input type="text" name="" id="" placeholder="Enter Amount" v-model="amount">
             </div>
-            <div v-else>
-                <input type="text" name="" id="" placeholder="Enter Amount">
-            </div>
-            <button class="donate-btn" type="button" @click="toggleModal">Donate</button>
+            
+            <button class="donate-btn" type="button" @click="toggleModal" :disabled="isDisabled">Donate</button>
         </form>
         <div class="right-amount">
             <div class="amount" @click="setAmount(5000)">
@@ -52,16 +50,25 @@ export default {
     data(){
         return {
             currency: 'RWF',
-            amount: '0',
-            showModal: false
+            amount: null,
+            showModal: false,
+            isDisabled: true,
         }
     },
     methods: {
         setAmount(amount){
             this.amount = amount
+            this.isDisabled = false
         },
         toggleModal(){
             this.showModal = !this.showModal
+        }
+    },
+    updated(){
+        if(this.amount > 0){
+            this.isDisabled = false
+        } else if(!this.amount){
+            this.isDisabled = true
         }
     }
 }
@@ -91,8 +98,12 @@ export default {
     .donate-form input{
         height: 25px;
         width: 240px;
-        border-radius: 4px;
-        padding: 6px;
+        padding: 10px 6px;
+        border: none;
+        box-sizing: border-box;
+        color: #555;
+        border-bottom: 1px solid #000;
+        font-size: 20px;
     }
     .donate-btn{
         margin-top: 10px;
@@ -101,8 +112,14 @@ export default {
         color: #fff;
         text-transform: uppercase;
         border-radius: 4px;
+        cursor: pointer;
     }
     .donate-btn:hover{
-        cursor: pointer;
+        font-size: 14px;
+    }
+    .donate-btn[disabled]{
+        opacity: 0.5;
+        cursor: not-allowed;
+
     }
 </style>
