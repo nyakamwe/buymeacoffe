@@ -1,3 +1,4 @@
+
 <template>
     <div class="container">
         <div class="left-amount">
@@ -29,7 +30,8 @@
             </div>
             
             <button v-if="!showBankField && !showPhoneField" class="donate-btn" type="button" @click="toggleModal" :disabled="isDisabled">Donate</button>
-            <button v-if="showPhoneField" class="donate-btn">OK</button>
+            <button v-if="showPhoneField && !isProcessing" class="donate-btn" :disabled="isDisabled">OK</button>
+            <button v-if="isProcessing" class="donate-btn" disabled>Processing...</button>
             <button v-if="showBankField" class="donate-btn" disabled>OK</button>
         </form>
         <div class="right-amount">
@@ -54,6 +56,9 @@
 
 <script>
 import Modal from './DonateTypeModal.vue';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+
 export default {
     components:{
         Modal,
@@ -69,7 +74,7 @@ export default {
             phonenumber: '',
             accountNumber: '',
             phoneError: '',
-            isSubmitting: false
+            isProcessing: false
         }
     },
     methods: {
@@ -86,17 +91,62 @@ export default {
             }
         },
         handleSubmit(){
+            this.isProcessing = true
             const num = this.phonenumber.replace(/[^0-9]/g, "");
             if(!num){
                 this.phoneError = 'phone number is required!'
+                this.isProcessing = false
             }else if(num.length < 10){
                 this.phoneError = 'phone number must be atleast 10 chars long!'
+                this.isProcessing = false
             }else{
 
                 // Use payment gateway to transfer amount from phone Number
-                console.log('phone numebr', this.phonenumber)
-                console.log('amount', this.amount)
-
+                console.log('phone numebr', num)
+                console.log('amount', this.amount)    
+                
+                axios({
+                    method: 'post',
+                    url: 'https://opay-api.oltranz.com/opay/paymentrequest',
+                    data: {
+                        "telephoneNumber" : `${num}`,
+                        "amount" : this.amount,
+                        "organizationId" : `${process.env.VUE_APP_ORGANIZATION_ID}`,
+                        "description" : "BUY ME A COFFEE",
+                        "callbackUrl" : `${process.env.VUE_APP_CALLBACKURL}`,
+                        "transactionId" : `${uuidv4()}`
+                    }
+                    })
+                    .then(response => {
+                        console.log(response);
+                        if(response.data.status === 'PENDING'){
+                            alert('Check your phone and approve transfer, *182*7*1#')
+                            this.isProcessing = false
+                        }else if(response.data.status === 'DUPLICATED_TRANSACTION_ID'){
+                            this.isProcessing = false
+                            alert('issues on transaction Id generation\n FAILED')
+                            this.phonenumber = ''
+                            this.amount = null
+                        }else if(response.data.status === 'ACCOUNT_NOT_FOUND'){
+                            this.isProcessing = false
+                            alert('Receiver has some issues!\n ACCOUNT NOT FOUND')
+                            this.phonenumber = ''
+                            this.amount = null
+                        }else if(response.data.status === 'FAILED'){
+                            this.isProcessing = false
+                            alert('You have insufficient funds on your account!')
+                        }
+                        else{
+                            alert('Thank you for buying me a coffee\n SUCCESSFULLY RECEIVED.')
+                            this.phonenumber = ''
+                            this.amount = null
+                        }
+                        
+                    })
+                    .catch(error => {
+                        console.log(error);
+                        this.isProcessing = false
+                    });
             }  
         }
     },
