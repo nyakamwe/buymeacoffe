@@ -100,11 +100,7 @@ export default {
                 this.phoneError = 'phone number must be atleast 10 chars long!'
                 this.isProcessing = false
             }else{
-
                 // Use payment gateway to transfer amount from phone Number
-                console.log('phone numebr', num)
-                console.log('amount', this.amount)    
-                
                 axios({
                     method: 'post',
                     url: 'https://opay-api.oltranz.com/opay/paymentrequest',
@@ -118,10 +114,11 @@ export default {
                     }
                     })
                     .then(response => {
-                        console.log(response);
                         if(response.data.status === 'PENDING'){
                             alert('Check your phone and approve transfer, *182*7*1#')
                             this.isProcessing = false
+                            this.phonenumber = ''
+                            this.amount = null
                         }else if(response.data.status === 'DUPLICATED_TRANSACTION_ID'){
                             this.isProcessing = false
                             alert('issues on transaction Id generation\n FAILED')
