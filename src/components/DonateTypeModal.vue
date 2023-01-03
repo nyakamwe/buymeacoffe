@@ -2,8 +2,8 @@
     <div class="backdrop" @click.self="closeModal">
         <div class="modal">
             Choose Donate Type
-            <div v-for="dtype in donateType">
-                <div class="donate-type">{{ dtype }}</div>
+            <div v-for="dtype in donateType" v-bind:key="dtype">
+                <div class="donate-type" @click="selectType(dtype)">{{ dtype }}</div>
             </div>
         </div>
     </div>
@@ -14,13 +14,18 @@
 export default {
     data(){
         return {
-            donateType: ['MoMo', 'Bank']
+            donateType: ['MoMo', 'Bank'],
+            selectedType: null
         }
     },
     methods: {
         closeModal(){
             // emmitting custom event to close modal in parent component
             this.$emit('close')
+        },
+        selectType(type){
+            this.selectedType = type
+            this.$emit('close', this.selectedType)
         }
     }
 

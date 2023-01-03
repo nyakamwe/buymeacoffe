@@ -14,12 +14,23 @@
                 3,000 {{ currency }}
             </div>
         </div>
-        <form class="donate-form">
+        <form class="donate-form" @submit.prevent="handleSubmit">
             <div>
-                <input type="text" name="" id="" placeholder="Enter Amount" v-model="amount">
+                <input type="text" name="amount" id="amount" placeholder="Enter Amount" v-model="amount">
+            </div>
+            <div v-if="showPhoneField">
+                <input type="text" name="phone" id="phone" placeholder="(+250) Phone Number" v-model="phonenumber">
+            </div>
+            <div v-show="phoneError && showPhoneField" class="error">
+                    {{ phoneError }}
+            </div>
+            <div v-if="showBankField">
+                <input type="text" name="" id="" placeholder="Bank Acc Number" v-model="accountNumber">
             </div>
             
-            <button class="donate-btn" type="button" @click="toggleModal" :disabled="isDisabled">Donate</button>
+            <button v-if="!showBankField && !showPhoneField" class="donate-btn" type="button" @click="toggleModal" :disabled="isDisabled">Donate</button>
+            <button v-if="showPhoneField" class="donate-btn">OK</button>
+            <button v-if="showBankField" class="donate-btn" disabled>OK</button>
         </form>
         <div class="right-amount">
             <div class="amount" @click="setAmount(5000)">
@@ -53,6 +64,12 @@ export default {
             amount: null,
             showModal: false,
             isDisabled: true,
+            showPhoneField: false,
+            showBankField: false,
+            phonenumber: '',
+            accountNumber: '',
+            phoneError: '',
+            isSubmitting: false
         }
     },
     methods: {
@@ -60,8 +77,27 @@ export default {
             this.amount = amount
             this.isDisabled = false
         },
-        toggleModal(){
+        toggleModal(data){
             this.showModal = !this.showModal
+            if(data === 'MoMo'){
+                this.showPhoneField = true
+            }else if(data === 'Bank'){
+                this.showBankField = true
+            }
+        },
+        handleSubmit(){
+            const num = this.phonenumber.replace(/[^0-9]/g, "");
+            if(!num){
+                this.phoneError = 'phone number is required!'
+            }else if(num.length < 10){
+                this.phoneError = 'phone number must be atleast 10 chars long!'
+            }else{
+
+                // Use payment gateway to transfer amount from phone Number
+                console.log('phone numebr', this.phonenumber)
+                console.log('amount', this.amount)
+
+            }  
         }
     },
     updated(){
@@ -70,7 +106,9 @@ export default {
         } else if(!this.amount){
             this.isDisabled = true
         }
-    }
+    },
+    
+    
 }
 </script>
 
@@ -104,6 +142,7 @@ export default {
         color: #555;
         border-bottom: 1px solid #000;
         font-size: 20px;
+        margin: 6px auto;
     }
     .donate-btn{
         margin-top: 10px;
@@ -120,6 +159,9 @@ export default {
     .donate-btn[disabled]{
         opacity: 0.5;
         cursor: not-allowed;
-
+    }
+    .error{
+        color: crimson;
+        font-size: 0.8rem;
     }
 </style>
